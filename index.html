@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Game TKJ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+
+    .game-container {
+      width: 100%;
+      min-height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Particle Background */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: floatParticle 15s infinite ease-in-out;
+    }
+
+    .particle:nth-child(1) { width: 10px; height: 10px; top: 10%; left: 20%; animation-delay: 0s; }
+    .particle:nth-child(2) { width: 15px; height: 15px; top: 30%; left: 50%; animation-delay: 2s; }
+    .particle:nth-child(3) { width: 8px; height: 8px; top: 60%; left: 80%; animation-delay: 4s; }
+    .particle:nth-child(4) { width: 12px; height: 12px; top: 80%; left: 30%; animation-delay: 1s; }
+    .particle:nth-child(5) { width: 10px; height: 10px; top: 20%; left: 70%; animation-delay: 3s; }
+    .particle:nth-child(6) { width: 14px; height: 14px; top: 50%; left: 10%; animation-delay: 5s; }
+
+    @keyframes floatParticle {
+      0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+      50% { transform: translate(50px, -50px) scale(1.5); opacity: 0.6; }
+    }
+
+    /* Start Screen */
+    .start-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100%;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .start-box {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 30px;
+      padding: 60px 50px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .game-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .game-title {
+      font-size: 48px;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 4px 15px rgba(255, 255, 255, 0.3); }
+      to { text-shadow: 0 4px 30px rgba(255, 255, 255, 0.6); }
+    }
+
+    .game-subtitle {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    .game-info {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .start-button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 20px 60px;
+      font-size: 22px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      animation: pulse 2s infinite;
+    }
+
+    .start-button:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      }
+      50% {
+        box-shadow: 0 15px 50px rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    /* Quiz Screen */
+    .quiz-screen {
+      display: none;
+      padding: 40px 20px;
+      min-height: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .quiz-header {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 25px 35px;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .score-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .question-counter {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+      box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+    }
+
+    .question-box {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 25px;
+      padding: 50px 45px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      animation: slideIn 0.6s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .question-text {
+      font-size: 26px;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 35px;
+      line-height: 1.5;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .option-button {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      color: #333;
+      padding: 20px 30px;
+      font-size: 18px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+      transition: left 0.5s;
+    }
+
+    .option-button:hover::before {
+      left: 100%;
+    }
+
+    .option-button:hover {
+      transform: translateX(10px);
+      background: white;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .option-button.correct {
+      background: #4ade80;
+      color: white;
+      border-color: #22c55e;
+      animation: correctAnim 0.6s ease;
+    }
+
+    .option-button.wrong {
+      background: #f87171;
+      color: white;
+      border-color: #ef4444;
+      animation: wrongAnim 0.6s ease;
+    }
+
+    @keyframes correctAnim {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes wrongAnim {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .option-button:disabled {
+      cursor: not-allowed;
+    }
+
+    /* Result Screen */
+    .result-screen {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100%;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .result-box {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 30px;
+      padding: 60px 50px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+      animation: scaleIn 0.8s ease-out;
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .result-icon {
+      font-size: 100px;
+      margin-bottom: 25px;
+      animation: bounce 2s infinite;
+    }
+
+    .result-title {
+      font-size: 42px;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .final-score {
+      font-size: 72px;
+      font-weight: bold;
+      color: #fbbf24;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 20px rgba(251, 191, 36, 0.5);
+      animation: glow 2s infinite alternate;
+    }
+
+    .grade-display {
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 15px;
+    }
+
+    .result-message {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .restart-button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 18px 50px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .restart-button:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .game-title {
+        font-size: 36px;
+      }
+
+      .start-box, .question-box, .result-box {
+        padding: 40px 30px;
+      }
+
+      .question-text {
+        font-size: 20px;
+      }
+
+      .option-button {
+        padding: 16px 20px;
+        font-size: 16px;
+      }
+
+      .quiz-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .final-score {
+        font-size: 56px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .game-title {
+        font-size: 28px;
+      }
+
+      .game-icon {
+        font-size: 60px;
+      }
+
+      .result-icon {
+        font-size: 70px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="game-container"><!-- Particles Background -->
+   <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+   </div><!-- Start Screen -->
+   <div class="start-screen" id="startScreen">
+    <div class="start-box">
+     <div class="game-icon">
+      🎮
+     </div>
+     <h1 class="game-title" id="gameTitle">Quiz Game TKJ</h1>
+     <p class="game-subtitle">Pembelajaran Dasar Teknik Komputer &amp; Jaringan</p>
+     <p class="game-info">Uji pengetahuan kamu tentang materi TKJ!<br>
+       20 pertanyaan menanti, berapa score yang bisa kamu dapatkan?</p><button class="start-button" id="startBtn"> <span id="startButtonText">🎮 Mulai Quiz</span> </button>
+    </div>
+   </div><!-- Quiz Screen -->
+   <div class="quiz-screen" id="quizScreen">
+    <header class="quiz-header">
+     <div class="score-display"><span>⭐ Score:</span> <span id="scoreValue">0</span>
+     </div>
+     <div class="question-counter"><span id="currentQuestion">1</span> / <span id="totalQuestions">20</span>
+     </div>
+    </header>
+    <div class="progress-bar">
+     <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <main class="question-box" id="questionBox">
+     <h2 class="question-text" id="questionText"></h2>
+     <div class="options-container" id="optionsContainer"></div>
+    </main>
+   </div><!-- Result Screen -->
+   <div class="result-screen" id="resultScreen">
+    <div class="result-box">
+     <div class="result-icon" id="resultIcon">
+      🏆
+     </div>
+     <h2 class="result-title">Quiz Selesai!</h2>
+     <div class="final-score" id="finalScore">
+      0
+     </div>
+     <div class="grade-display" id="gradeDisplay"></div>
+     <p class="result-message" id="resultMessage"></p><button class="restart-button" id="restartBtn">🔄 Main Lagi</button>
+    </div>
+   </div>
+  </div>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script>
+    const defaultConfig = {
+      game_title: "Quiz Game TKJ",
+      start_button_text: "🎮 Mulai Quiz"
+    };
+
+    async function onConfigChange(config) {
+      document.getElementById('gameTitle').textContent = config.game_title || defaultConfig.game_title;
+      document.getElementById('startButtonText').textContent = config.start_button_text || defaultConfig.start_button_text;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["game_title", config.game_title || defaultConfig.game_title],
+        ["start_button_text", config.start_button_text || defaultConfig.start_button_text]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    // Quiz Questions
+    const questions = [
+      {
+        question: "Apa kepanjangan dari TKJ?",
+        options: ["Teknik Komputer Jaringan", "Teknik Komputer dan Jaringan", "Teknologi Komputer Jaringan", "Teknik Komunikasi Jaringan"],
+        correct: 1
+      },
+      {
+        question: "Berapa bit dalam 1 byte?",
+        options: ["4 bit", "8 bit", "16 bit", "32 bit"],
+        correct: 1
+      },
+      {
+        question: "Perangkat yang berfungsi menghubungkan beberapa jaringan disebut?",
+        options: ["Hub", "Switch", "Router", "Modem"],
+        correct: 2
+      },
+      {
+        question: "IP Address 192.168.1.1 termasuk kelas?",
+        options: ["Kelas A", "Kelas B", "Kelas C", "Kelas D"],
+        correct: 2
+      },
+      {
+        question: "Protokol yang digunakan untuk transfer file adalah?",
+        options: ["HTTP", "FTP", "SMTP", "DNS"],
+        correct: 1
+      },
+      {
+        question: "Topologi jaringan yang berbentuk lingkaran disebut?",
+        options: ["Star", "Bus", "Ring", "Mesh"],
+        correct: 2
+      },
+      {
+        question: "Port default untuk HTTP adalah?",
+        options: ["21", "25", "80", "443"],
+        correct: 2
+      },
+      {
+        question: "Singkatan dari LAN adalah?",
+        options: ["Large Area Network", "Local Area Network", "Long Area Network", "Link Area Network"],
+        correct: 1
+      },
+      {
+        question: "Perangkat input pada komputer adalah?",
+        options: ["Monitor", "Printer", "Keyboard", "Speaker"],
+        correct: 2
+      },
+      {
+        question: "RAM termasuk jenis memori?",
+        options: ["Permanen", "Volatile", "ROM", "Cache"],
+        correct: 1
+      },
+      {
+        question: "Sistem operasi open source adalah?",
+        options: ["Windows", "MacOS", "Linux", "iOS"],
+        correct: 2
+      },
+      {
+        question: "Kabel jaringan yang paling umum digunakan?",
+        options: ["Coaxial", "UTP", "Fiber Optic", "STP"],
+        correct: 1
+      },
+      {
+        question: "Subnet mask untuk kelas C adalah?",
+        options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
+        correct: 2
+      },
+      {
+        question: "Apa fungsi DNS?",
+        options: ["Mengamankan jaringan", "Menerjemahkan domain ke IP", "Mengirim email", "Transfer file"],
+        correct: 1
+      },
+      {
+        question: "Protokol untuk email adalah?",
+        options: ["FTP", "HTTP", "SMTP", "DHCP"],
+        correct: 2
+      },
+      {
+        question: "Perangkat yang memperkuat sinyal jaringan?",
+        options: ["Hub", "Repeater", "Bridge", "Gateway"],
+        correct: 1
+      },
+      {
+        question: "OSI Layer memiliki berapa lapisan?",
+        options: ["5", "6", "7", "8"],
+        correct: 2
+      },
+      {
+        question: "Firewall berfungsi untuk?",
+        options: ["Mempercepat koneksi", "Keamanan jaringan", "Sharing file", "Backup data"],
+        correct: 1
+      },
+      {
+        question: "Standar wireless 802.11 adalah untuk?",
+        options: ["Bluetooth", "WiFi", "NFC", "Infrared"],
+        correct: 1
+      },
+      {
+        question: "DHCP berfungsi untuk?",
+        options: ["Mengatur bandwidth", "Memberikan IP otomatis", "Enkripsi data", "Routing"],
+        correct: 1
+      }
+    ];
+
+    // Game State
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    // Elements
+    const startScreen = document.getElementById('startScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const scoreValue = document.getElementById('scoreValue');
+    const currentQuestion = document.getElementById('currentQuestion');
+    const totalQuestions = document.getElementById('totalQuestions');
+    const progressFill = document.getElementById('progressFill');
+    const finalScore = document.getElementById('finalScore');
+    const gradeDisplay = document.getElementById('gradeDisplay');
+    const resultMessage = document.getElementById('resultMessage');
+    const resultIcon = document.getElementById('resultIcon');
+
+    // Initialize
+    totalQuestions.textContent = questions.length;
+
+    // Start Game
+    startBtn.addEventListener('click', function() {
+      startScreen.style.display = 'none';
+      quizScreen.style.display = 'block';
+      loadQuestion();
+    });
+
+    // Load Question
+    function loadQuestion() {
+      answered = false;
+      const question = questions[currentQuestionIndex];
+      questionText.textContent = question.question;
+      currentQuestion.textContent = currentQuestionIndex + 1;
+      
+      // Update progress
+      const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+      progressFill.style.width = progress + '%';
+
+      // Clear previous options
+      optionsContainer.innerHTML = '';
+
+      // Create option buttons
+      question.options.forEach(function(option, index) {
+        const button = document.createElement('button');
+        button.className = 'option-button';
+        button.textContent = option;
+        button.addEventListener('click', function() {
+          if (!answered) {
+            checkAnswer(index, button);
+          }
+        });
+        optionsContainer.appendChild(button);
+      });
+    }
+
+    // Check Answer
+    function checkAnswer(selectedIndex, button) {
+      answered = true;
+      const question = questions[currentQuestionIndex];
+      const allButtons = optionsContainer.querySelectorAll('.option-button');
+
+      allButtons.forEach(function(btn) {
+        btn.disabled = true;
+      });
+
+      if (selectedIndex === question.correct) {
+        button.classList.add('correct');
+        score += 5;
+        scoreValue.textContent = score;
+      } else {
+        button.classList.add('wrong');
+        allButtons[question.correct].classList.add('correct');
+      }
+
+      setTimeout(function() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+          loadQuestion();
+        } else {
+          showResult();
+        }
+      }, 1500);
+    }
+
+    // Show Result
+    function showResult() {
+      quizScreen.style.display = 'none';
+      resultScreen.style.display = 'flex';
+      
+      finalScore.textContent = score;
+      
+      const percentage = (score / (questions.length * 5)) * 100;
+      let grade = '';
+      let message = '';
+      let icon = '';
+
+      if (percentage >= 90) {
+        grade = 'Grade: A';
+        message = 'Luar biasa! Kamu menguasai materi TKJ dengan sempurna! 🌟';
+        icon = '🏆';
+      } else if (percentage >= 75) {
+        grade = 'Grade: B';
+        message = 'Bagus sekali! Pemahaman kamu tentang TKJ sangat baik! 👏';
+        icon = '⭐';
+      } else if (percentage >= 60) {
+        grade = 'Grade: C';
+        message = 'Cukup baik! Terus belajar untuk meningkatkan pemahaman! 📚';
+        icon = '👍';
+      } else {
+        grade = 'Grade: D';
+        message = 'Jangan menyerah! Pelajari lagi materi TKJ dan coba lagi! 💪';
+        icon = '📖';
+      }
+
+      gradeDisplay.textContent = grade;
+      resultMessage.textContent = message;
+      resultIcon.textContent = icon;
+    }
+
+    // Restart Game
+    restartBtn.addEventListener('click', function() {
+      currentQuestionIndex = 0;
+      score = 0;
+      scoreValue.textContent = '0';
+      resultScreen.style.display = 'none';
+      startScreen.style.display = 'flex';
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a6a5c69a082fd24',t:'MTc2NDUwNTg3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
